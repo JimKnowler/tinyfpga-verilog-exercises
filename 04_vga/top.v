@@ -19,33 +19,34 @@ module top (
     // Basic VGA Output Circuit
     ////////
 
-    /*  Generate a 50 MHz internal clock from 16 MHz input clock  */
-    wire clk_50;
+    // Generate a 40 MHz internal clock from 16 MHz input clock
+    // - generated with icepll -16 -o 40
+    wire clk_40;
 
     SB_PLL40_CORE #(
         .FEEDBACK_PATH("SIMPLE"),
         .PLLOUT_SELECT("GENCLK"),
-        .DIVR(4'b0000),         // DIVR = 0
-        .DIVF(7'b0110001),      // DIVF = 49
-        .DIVQ(3'b100),          // DIVQ = 5
-        .FILTER_RANGE(3'b001)   // FILTER_RANGE = 1
+        .DIVR(4'b0000),		    // DIVR =  0
+        .DIVF(7'b0100111),	  // DIVF = 39
+        .DIVQ(3'b100),		    // DIVQ =  4
+        .FILTER_RANGE(3'b001)	// FILTER_RANGE = 1
     ) pll (
         .REFERENCECLK(CLK),
-        .PLLOUTCORE(clk_50),
+        .PLLOUTCORE(clk_40),
         .RESETB(1'b1),
         .BYPASS(1'b0)
     );
 
-    // generate VGA 640x480, 60Hz
+    // generate VGA 800x600, 60Hz
     // taken from: http://martin.hinner.info/vga/timing.html
-    localparam H_ACTIVE_VIDEO = 640;
-    localparam H_FRONT_PORCH = 16;
-    localparam H_SYNC_PULSE = 96;
-    localparam H_BACK_PORCH = 48;
-    localparam V_ACTIVE_VIDEO = 480;
-    localparam V_FRONT_PORCH = 11;
-    localparam V_SYNC_PULSE = 2;
-    localparam V_BACK_PORCH = 31;
+    localparam H_ACTIVE_VIDEO = 800;
+    localparam H_FRONT_PORCH = 40;
+    localparam H_SYNC_PULSE = 128;
+    localparam H_BACK_PORCH = 88;
+    localparam V_ACTIVE_VIDEO = 600;
+    localparam V_FRONT_PORCH = 1;
+    localparam V_SYNC_PULSE = 4;
+    localparam V_BACK_PORCH = 23;
 
     // intermediate calculations
     localparam H_SYNC_PULSE_START = H_ACTIVE_VIDEO + H_FRONT_PORCH;
@@ -57,8 +58,8 @@ module top (
     localparam V_END_MINUS_1 = V_SYNC_PULSE_END + V_BACK_PORCH - 1;
 
     // horizontal and vertical positions
-    reg [9:0] h_counter;
-    reg [9:0] v_counter;
+    reg [10:0] h_counter;
+    reg [10:0] v_counter;
 
     // signals for whether currently in active area of h / v
     wire is_h_active_video;
@@ -85,13 +86,7 @@ module top (
     assign is_active_video = is_h_active_video && is_v_active_video;
 
     // sequential logic for rendering
-
-    reg clk_25;
-    always @(posedge clk_50) begin
-      clk_25 = ~clk_25;
-    end
-
-    always @(posedge clk_25) begin
+    always @(posedge clk_40) begin
       // beware of off-by-one errors when comparing to H_END / V_END
       if (h_counter == H_END_MINUS_1) begin
         h_counter <= 0;
@@ -108,8 +103,8 @@ module top (
     end
 
     // generate output
-    assign PIN_10 = ~is_h_sync_pulse;     // h sync
-    assign PIN_9 = ~is_v_sync_pulse;      // v sync
+    assign PIN_10 = ~is_h_sync_pulse;      // h sync
+    assign PIN_9 = ~is_v_sync_pulse;       // v sync
 
     assign PIN_11 = is_active_video;      // red
     assign PIN_12 = 0;                    // green
