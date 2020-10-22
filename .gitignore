@@ -4,5 +4,4 @@
 *.dblite
 *.out
 *.rpt
-
-
+.DS_Store
