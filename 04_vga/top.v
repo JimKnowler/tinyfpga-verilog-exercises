@@ -103,8 +103,8 @@ module top (
     end
 
     // generate output
-    assign PIN_10 = ~is_h_sync_pulse;      // h sync
-    assign PIN_9 = ~is_v_sync_pulse;       // v sync
+    assign PIN_10 = is_h_sync_pulse;      // h sync
+    assign PIN_9 = is_v_sync_pulse;       // v sync
 
     wire red;
     wire green;
