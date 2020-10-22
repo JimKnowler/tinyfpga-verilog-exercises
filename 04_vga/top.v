@@ -106,9 +106,17 @@ module top (
     assign PIN_10 = ~is_h_sync_pulse;      // h sync
     assign PIN_9 = ~is_v_sync_pulse;       // v sync
 
-    assign PIN_11 = is_active_video;      // red
-    assign PIN_12 = 0;                    // green
-    assign PIN_13 = 0;                    // blue
+    wire red;
+    wire green;
+    wire blue;
+
+    assign red = x < 400;
+    assign blue = y < 300;
+    assign green = x >= 400;
+
+    assign PIN_11 = is_active_video && red;    // red
+    assign PIN_12 = is_active_video && green;  // green
+    assign PIN_13 = is_active_video && blue;   // blue
 
 
 endmodule
